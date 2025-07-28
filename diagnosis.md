@@ -1,5 +1,115 @@
 # Comandos de Diagnóstico y Recuperación Ubuntu
 
+## 🚨 ACCESO DE EMERGENCIA - Cuando el Sistema No Arranca
+
+### Combinaciones de Teclas Críticas
+
+```bash
+# Durante el arranque (GRUB)
+Shift (mantener presionado)    # Mostrar menú GRUB si está oculto
+Esc (repetidamente)           # Alternativa para mostrar GRUB
+e                             # Editar entrada de arranque en GRUB
+c                             # Consola de comandos GRUB
+F6                            # Opciones de arranque en Live USB
+
+# Una vez en el sistema
+Ctrl + Alt + F1-F6            # Cambiar a TTY (consola texto)
+Ctrl + Alt + F7               # Volver al entorno gráfico (Ubuntu 16.04-)
+Ctrl + Alt + F1               # Volver al entorno gráfico (Ubuntu 18.04+)
+Ctrl + Alt + T                # Terminal en entorno gráfico
+Ctrl + C                      # Interrumpir comando actual
+Ctrl + Z                      # Suspender proceso
+Ctrl + D                      # Salir/EOF
+```
+
+### Acceso por Consola de Texto (TTY)
+
+Si el entorno gráfico no arranca:
+
+```bash
+# Al ver la pantalla de login gráfico que no responde:
+Ctrl + Alt + F3               # Ir a TTY3 (consola texto)
+# Luego hacer login normal con usuario y contraseña
+
+# Para volver a intentar el entorno gráfico:
+Ctrl + Alt + F1               # o F7 dependiendo de la versión
+
+# Reiniciar el gestor de ventanas desde TTY:
+sudo systemctl restart gdm3           # Para GNOME
+sudo systemctl restart lightdm        # Para XFCE/LXDE
+sudo systemctl restart sddm           # Para KDE
+```
+
+### Arranque en Modo Recuperación
+
+```bash
+# Desde GRUB:
+1. Mantener Shift durante arranque
+2. Seleccionar "Advanced options for Ubuntu"
+3. Seleccionar "recovery mode"
+4. En el menú recovery elegir:
+   - "root" para shell de root
+   - "fsck" para verificar discos
+   - "network" para habilitar red
+
+# Parámetros de kernel útiles (editar con 'e' en GRUB):
+init=/bin/bash              # Arrancar directo a shell
+single                      # Modo usuario único
+recovery                    # Modo recuperación
+nomodeset                   # Si hay problemas gráficos
+acpi=off                    # Si hay problemas de energía
+```
+
+### Acceso desde Live USB/CD
+
+```bash
+# Preparar Live USB:
+1. Descargar ISO de Ubuntu
+2. Crear USB booteable con Rufus/Etcher/dd
+3. Arrancar desde USB (F12/F2/Del según BIOS)
+
+# En Live session:
+sudo fdisk -l               # Ver particiones del disco duro
+sudo mkdir /mnt/sistema     # Crear punto montaje
+sudo mount /dev/sda1 /mnt/sistema  # Montar partición raíz
+
+# Para chroot (entrar al sistema instalado):
+sudo mount --bind /dev /mnt/sistema/dev
+sudo mount --bind /dev/pts /mnt/sistema/dev/pts
+sudo mount --bind /proc /mnt/sistema/proc
+sudo mount --bind /sys /mnt/sistema/sys
+sudo chroot /mnt/sistema
+```
+
+### GRUB Commands (Consola GRUB)
+
+Si GRUB no encuentra el sistema:
+
+```bash
+# En la consola GRUB (presionar 'c'):
+ls                          # Listar dispositivos
+ls (hd0,1)/                # Ver contenido de partición
+set root=(hd0,1)           # Establecer partición raíz
+linux /boot/vmlinuz root=/dev/sda1
+initrd /boot/initrd.img
+boot                       # Arrancar
+
+# Para ver particiones:
+ls (hd0,msdos1)/boot       # Ver archivos de boot
+```
+
+### Resetear Contraseña desde Recovery
+
+```bash
+# Desde modo recovery o chroot:
+passwd username             # Cambiar contraseña de usuario
+passwd root                # Cambiar contraseña de root (si está habilitada)
+
+# Habilitar usuario root si es necesario:
+sudo passwd root
+sudo passwd -u root         # Desbloquear cuenta root
+```
+
 ## 🖥️ Información del Sistema
 
 ```bash
@@ -220,8 +330,7 @@ sudo systemctl restart gdm3       # Reiniciar login gráfico
 - **Siempre usa `sudo`** para comandos que requieren permisos de administrador
 - **Haz backups** antes de hacer cambios importantes
 - **Anota los UUIDs** de tus particiones para montaje automático
-- **Guarda esta lista** en un USB de recuperación
-- **Practica estos comandos** antes de necesitarlos en emergencia
+
 
 ## 🔗 Archivos de Configuración Críticos
 
